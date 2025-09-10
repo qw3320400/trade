@@ -72,6 +72,7 @@ func (p *PriceGap) Run(ctx context.Context) error {
 	}
 	for _, pair := range p.pairs {
 		go p.RunPair(ctx, pair)
+		time.Sleep(5 * time.Second)
 	}
 	return nil
 }

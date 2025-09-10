@@ -117,7 +117,6 @@ func (p *PublicWebSocketMarkPrices) Subscribe() *WebSocketRequest {
 		}
 		request.Args = append(request.Args, arg)
 	}
-	common.Logger.Sugar().Infof("PublicWebSocketMarkPrices Subscribe: %+v", request.Args[0])
 	return request
 }
 

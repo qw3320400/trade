@@ -1,0 +1,1 @@
+curl https://www.okx.com/api/v5/public/instruments?instType=SWAP

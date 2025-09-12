@@ -64,8 +64,10 @@ func (c *Client) ReconnectPublicWebSocket(ctx context.Context) {
 		if err != nil {
 			common.Logger.Sugar().Warnf("ReconnectPublicWebSocket error %v", err)
 			continue
+		} else {
+			common.Logger.Sugar().Infof("ReconnectPublicWebSocket success after %d attempts", i+1)
+			break
 		}
-		common.Logger.Sugar().Infof("ReconnectPublicWebSocket success after %d attempts", i+1)
 	}
 }
 

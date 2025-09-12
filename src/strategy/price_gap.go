@@ -3,12 +3,14 @@ package strategy
 import (
 	"context"
 	"strconv"
+	"strings"
 	"time"
 	"trade/src/common"
 	"trade/src/exchange/binance"
 	"trade/src/exchange/okx"
 
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 type Pair struct {
@@ -23,15 +25,17 @@ type ExchangePrice struct {
 }
 
 type PriceGap struct {
-	bCli  *binance.Client
-	oCli  *okx.Client
-	pairs []*Pair
+	bCli     *binance.Client
+	oCli     *okx.Client
+	chartLog *zap.Logger
+	pairs    []*Pair
 }
 
 func NewPriceGap() *PriceGap {
 	return &PriceGap{
-		bCli: binance.NewClient(),
-		oCli: okx.NewClient(),
+		bCli:     binance.NewClient(),
+		oCli:     okx.NewClient(),
+		chartLog: common.NewChart("price_gap", time.Hour*24*7),
 		pairs: []*Pair{
 			{
 				BinancePrice: &ExchangePrice{Symbol: "BTCUSDT"},
@@ -141,20 +145,9 @@ func (p *PriceGap) checkPriceGap(pair *Pair) {
 	gap := pair.BinancePrice.MarkPrice.Sub(pair.OKXPrice.MarkPrice)
 	avg := pair.BinancePrice.MarkPrice.Add(pair.OKXPrice.MarkPrice).Div(decimal.NewFromInt(2))
 	ratio := gap.Div(avg).Mul(decimal.NewFromInt(100))
-	ratioAbs := ratio.Abs()
-	var logFunc func(msg string, args ...interface{})
-	if ratioAbs.GreaterThanOrEqual(decimal.NewFromFloat(0.03)) {
-		logFunc = common.Logger.Sugar().Infof
-	} else if ratioAbs.GreaterThanOrEqual(decimal.NewFromFloat(0.1)) {
-		logFunc = common.Logger.Sugar().Warnf
-	} else if ratioAbs.GreaterThanOrEqual(decimal.NewFromFloat(0.3)) {
-		logFunc = common.Logger.Sugar().Errorf
-	}
-	if logFunc != nil {
-		now := time.Now().UnixMilli()
-		logFunc("PriceGap %s(%s/%dms) %s(%s/%dms) gap: %s ratio: %s%%",
-			pair.BinancePrice.Symbol, pair.BinancePrice.MarkPrice.String(), now-pair.BinancePrice.Time,
-			pair.OKXPrice.Symbol, pair.OKXPrice.MarkPrice.String(), now-pair.OKXPrice.Time,
-			gap.String(), ratio.StringFixed(4))
-	}
+	p.chartLog.Info(strings.Join([]string{
+		strconv.FormatInt(time.Now().Unix(), 10),
+		pair.BinancePrice.Symbol,
+		ratio.String(),
+	}, ","))
 }

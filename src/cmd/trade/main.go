@@ -13,9 +13,13 @@ func main() {
 	common.InitLogger(false)
 	common.Logger.Sugar().Info("Starting trade application...")
 
-	err := strategy.NewPriceGap().Run(context.Background())
-	if err != nil {
-		common.Logger.Sugar().Fatalf("Failed to start PriceGap strategy: %v", err)
+	components := []common.Component{
+		strategy.NewPriceGap(),
+	}
+	for _, component := range components {
+		if err := component.Run(context.Background()); err != nil {
+			common.Logger.Sugar().Fatalf("Failed to run component: %v", err)
+		}
 	}
 
 	sigChan := make(chan os.Signal, 1)

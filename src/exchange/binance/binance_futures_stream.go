@@ -75,8 +75,10 @@ func (c *Client) ReconnectFuturesStreamWebSocket(ctx context.Context) {
 		if err != nil {
 			common.Logger.Sugar().Warnf("ReconnectFuturesStreamWebSocket error %v", err)
 			continue
+		} else {
+			common.Logger.Sugar().Infof("ReconnectFuturesStreamWebSocket success after %d attempts", i+1)
+			break
 		}
-		common.Logger.Sugar().Infof("ReconnectFuturesStreamWebSocket success after %d attempts", i+1)
 	}
 }
 
